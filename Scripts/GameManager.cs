@@ -64,12 +64,13 @@ public class GameManager : MonoBehaviour {
 	} //close Start()
 
 
-	void GameSetup() {
-		spins = 0;
+	void GameSetup() {  //called at the start of each round: after player wins or loses
 		gameState = gState.setup;
+		spins = 0;
 		textLevel.text = "Level " + (difficulty + 1);
 
-		if (difficulty < difficultySettings.Length){ //update difficulty settings
+		//update difficulty settings
+		if (difficulty < difficultySettings.Length){
 			prizes = difficultySettings[difficulty].prizes;
 			maxSpins = difficultySettings[difficulty].spins;
 			timeStep = difficultySettings[difficulty].timeScale;
@@ -98,8 +99,8 @@ public class GameManager : MonoBehaviour {
 	void Update () {
 
 		//if the game were more complicated we should use a state machine, but premature optimization is a wily enemy
-		if (gameState == gState.setup) { //waiting to get started
-			if ( Input.GetMouseButtonDown(0)) { //click to begin
+		if (gameState == gState.setup) { //waits for the player to clikc, then drops the boxes and starts the spinning
+			if ( Input.GetMouseButtonDown(0)) {
 				foreach (BouncingBox box in boxScripts) {
 					box.Drop(timeFall);
 				}
@@ -108,9 +109,8 @@ public class GameManager : MonoBehaviour {
 				textMain.text = spinText;
 			}
 
-		} else if (gameState == gState.spin) { //boxes are spinning
+		} else if (gameState == gState.spin) {  //keep spinning until we've spun enough, then transition to the "Find the thing" state
 			if (Time.time > readyTime) {
-				//keep spinning until we've spun enough, then transition to the "Find the thing" state
 				if (spins < maxSpins) {
 					if (spins == 0) {
 						Spin(0); //first spin is always specific to pull the prizes away from each other
@@ -124,12 +124,12 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 
-		} else if (gameState == gState.pick) {
-			if ( Input.GetMouseButtonDown(0)) { //if clicking
+		} else if (gameState == gState.pick) {  //waits for the player to pick a box, then find out if he wins or loses
+			if ( Input.GetMouseButtonDown(0)) {
 				if (selected != null) {//already stored what we might be clicking on in the HeavyUpdate, no need to check again
 					selectedBox.Reveal(0f);
 
-					if (selectedBox.prizeID == missingPrize) { //if player chose correctly
+					if (selectedBox.prizeID == missingPrize) {
 						GameWin();
 					} else {
 						GameLose();
@@ -137,7 +137,7 @@ public class GameManager : MonoBehaviour {
 				}
 			} //close if clicking
 
-		} else if  (gameState == gState.reset) {
+		} else if  (gameState == gState.reset) {  //waits, then resets the game
 			if (Time.time > readyTime) GameReset();
 		}
 
